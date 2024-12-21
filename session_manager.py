@@ -1,5 +1,5 @@
-from pyrogram import Client
 import os
+from telethon import TelegramClient
 
 def create_client(session_name, api_id, api_hash, session_dir="sessions"):
     """Создает и возвращает клиента, используя заданные параметры."""
@@ -14,6 +14,6 @@ def create_client(session_name, api_id, api_hash, session_dir="sessions"):
         os.makedirs(session_dir)
     
     # Инициализируем клиента с путём к сессии
-    client = Client(session_path, api_id=api_id, api_hash=api_hash)
+    client = TelegramClient(session_path, api_id, api_hash)
 
     return client
