@@ -84,18 +84,17 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                             if value_match := re.search(value_pattern, updated_reply.text):
                                 current_value = float(value_match.group(1))
                                 print(f"Текущее значение Value: {current_value}")
-                                print(updated_reply.text)
 
                                 # Если Value превышает 30% от суммы покупки
-                                if current_value >= total_cost * 1.01:  # 30% от суммы покупки
+                                if current_value >= total_cost * 1.3:  # 30% от суммы покупки
                                     print(f"Value превышает 30% от суммы покупки! Нажимаем кнопку {sell_button.text}")
                                     await updated_reply.click(4)  # Индекс кнопки Sell (проверьте правильность индекса)
-                                    print("ПРОДАНО!!!")
+                                    
                                     return
                             else:
                                 print("Значение Value не найдено.")
                                     
-                            await asyncio.sleep(3)
+                            await asyncio.sleep(2)
                     else:
                         print("Сообщение о покупке не найдено.")
             else:
