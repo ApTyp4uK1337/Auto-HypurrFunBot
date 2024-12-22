@@ -86,10 +86,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                     
                                     async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
                                         if sale_match := re.search(sold_pattern, sale_reply.text):
-                                            amount_sold = float(sale_match.group(1))  # Количество проданных монет
-                                            coin = sale_match.group(2)  # Название монеты
-                                            average_price = float(sale_match.group(3))  # Средняя цена
-                                            total_sale_amount = float(sale_match.group(4))  # Общая сумма продажи
+                                            amount_sold = float(sale_match.group(1))
+                                            coin = sale_match.group(2)
+                                            average_price = float(sale_match.group(3))
+                                            total_sale_amount = float(sale_match.group(4))
                                             
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
                                             
@@ -105,10 +105,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                     
                                     async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
                                         if sale_match := re.search(sold_pattern, sale_reply.text):
-                                            amount_sold = float(sale_match.group(1))  # Количество проданных монет
-                                            coin = sale_match.group(2)  # Название монеты
-                                            average_price = float(sale_match.group(3))  # Средняя цена
-                                            total_sale_amount = float(sale_match.group(4))  # Общая сумма продажи
+                                            amount_sold = float(sale_match.group(1))
+                                            coin = sale_match.group(2)
+                                            average_price = float(sale_match.group(3))
+                                            total_sale_amount = float(sale_match.group(4))
                                             
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
                                             
