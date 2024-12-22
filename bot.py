@@ -19,6 +19,7 @@ SESSION_NAME = config["SESSION_NAME"]
 CHANNEL = config["CHANNEL"]
 BOT_USERNAME = config["BOT_USERNAME"]
 MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
+MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
 
 if not os.path.exists('sessions'):
     os.makedirs('sessions')
@@ -77,12 +78,19 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 logger.info(f"Текущее значение Value: {current_value} /// Профит: {current_profit:+.2f}")
 
                                 if current_value == 0.0:
-                                    logger.info("Value равно 0.0. Предполагается, что актив был продан. Прекращаем проверку.")
+                                    # Закрываем при ручной продаже
+                                    logger.info("Value равно 0.0. Прекращаем проверку.")
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
                                     # Вычисляем итоговый профит
                                     final_profit = current_value - total_cost
-                                    logger.info(f"Value превышает 30% от суммы покупки. Итоговый профит: {final_profit:+.2f}")
+                                    logger.info(f"Value превышает {MAX_PROFIT_PERCENT}% от суммы покупки. Итоговый профит: {final_profit:+.2f}")
+                                    await updated_reply.click(4)
+                                    return
+                                elif current_value <= total_cost * (1 + MIN_PROFIT_PERCENT / 100):
+                                    # Вычисляем итоговый убыток
+                                    final_loss = current_value - total_cost
+                                    logger.info(f"Value упало ниже {MIN_PROFIT_PERCENT}%. Убыток: {final_loss:+.2f}. Продаем актив.")
                                     await updated_reply.click(4)
                                     return
                             else:
@@ -116,6 +124,6 @@ async def on_message(event):
     asyncio.create_task(monitor_channel(message))
 
 # Запускаем клиента
-logger.info(f"User bot запущен и слушает канал {CHANNEL}...")
+logger.info(f"Бот запущен и слушает канал {CHANNEL}...")
 client.start()
 client.run_until_disconnected()
