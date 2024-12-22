@@ -148,6 +148,6 @@ async def on_message(event):
     asyncio.create_task(monitor_channel(message))
 
 # Запускаем клиента
-logger.info(f"Бот запущен и слушает канал {CHANNEL}...")
+logger.info(f"Бот запущен на сессии {SESSION_NAME} и слушает канал {CHANNEL}...")
 client.start()
 client.run_until_disconnected()
