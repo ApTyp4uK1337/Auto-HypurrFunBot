@@ -76,7 +76,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 current_profit = current_value - total_cost
                                 logger.info(f"Текущее значение Value: {current_value} /// Профит: {current_profit:+.2f}")
 
-                                if current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
+                                if current_value == 0.0:
+                                    logger.info("Value равно 0.0. Предполагается, что актив был продан. Прекращаем проверку.")
+                                    return
+                                elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
                                     # Вычисляем итоговый профит
                                     final_profit = current_value - total_cost
                                     logger.info(f"Value превышает 30% от суммы покупки. Итоговый профит: {final_profit:+.2f}")
