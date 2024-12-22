@@ -27,11 +27,10 @@ if not os.path.exists('sessions'):
 # Создаем клиента
 client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
-# Регулярное выражение для поиска ссылки с параметром после ?start=
+# Регулярные выражения
 link_pattern = fr'http://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)'
-
-# Регулярное выражение для извлечения информации о покупке из сообщения
 purchase_pattern = r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)"
+sold_pattern = r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)"
 value_pattern = r"Value:\s+`([0-9]+\.[0-9]+)`"
 
 async def send_start_command(bot, bot_username, start_data):
@@ -52,16 +51,15 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
         async for bot_reply in user_bot.iter_messages(bot_username, limit=1):
             if bot_reply.reply_markup:
                 message_id = bot_reply.id
-                
                 await bot_reply.click(0)
                 await asyncio.sleep(1)
 
                 # Ожидаем сообщение о покупке
                 async for purchase_reply in user_bot.iter_messages(bot_username, limit=1):
                     if purchase_match := re.search(purchase_pattern, purchase_reply.text):
-                        amount_bought = purchase_match.group(1)
+                        amount_bought = float(purchase_match.group(1))
                         coin = purchase_match.group(2)
-                        price = purchase_match.group(3)
+                        price = float(purchase_match.group(3))
                         total_cost = float(purchase_match.group(4))
                         logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
                         
@@ -75,23 +73,49 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 
                                 # Вычисляем текущий профит
                                 current_profit = current_value - total_cost
-                                logger.info(f"Текущее значение Value: {current_value} /// Профит: {current_profit:+.2f}")
+                                logger.info(f"Текущее значение Value: {current_value} /// Профит: {current_profit:+.2f}$")
 
                                 if current_value == 0.0:
                                     # Закрываем при ручной продаже
                                     logger.info("Value равно 0.0. Прекращаем проверку.")
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
-                                    # Вычисляем итоговый профит
-                                    final_profit = current_value - total_cost
-                                    logger.info(f"Value превышает {MAX_PROFIT_PERCENT}% от суммы покупки. Итоговый профит: {final_profit:+.2f}")
                                     await updated_reply.click(4)
+                                    
+                                    await asyncio.sleep(1)
+                                    
+                                    async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
+                                        if sale_match := re.search(sold_pattern, sale_reply.text):
+                                            amount_sold = float(sale_match.group(1))  # Количество проданных монет
+                                            coin = sale_match.group(2)  # Название монеты
+                                            average_price = float(sale_match.group(3))  # Средняя цена
+                                            total_sale_amount = float(sale_match.group(4))  # Общая сумма продажи
+                                            
+                                            logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                            
+                                            final_profit = total_sale_amount - total_cost
+                                            
+                                            logger.info(f"Value превышает {MAX_PROFIT_PERCENT}%. Профит: {final_profit:+.2f}$")
+                                            
                                     return
                                 elif current_value <= total_cost * (1 + MIN_PROFIT_PERCENT / 100):
-                                    # Вычисляем итоговый убыток
-                                    final_loss = current_value - total_cost
-                                    logger.info(f"Value упало ниже {MIN_PROFIT_PERCENT}%. Убыток: {final_loss:+.2f}. Продаем актив.")
                                     await updated_reply.click(4)
+                                    
+                                    await asyncio.sleep(1)
+                                    
+                                    async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
+                                        if sale_match := re.search(sold_pattern, sale_reply.text):
+                                            amount_sold = float(sale_match.group(1))  # Количество проданных монет
+                                            coin = sale_match.group(2)  # Название монеты
+                                            average_price = float(sale_match.group(3))  # Средняя цена
+                                            total_sale_amount = float(sale_match.group(4))  # Общая сумма продажи
+                                            
+                                            logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                            
+                                            final_loss = total_sale_amount - total_cost
+                                            
+                                            logger.info(f"Value упало ниже {MIN_PROFIT_PERCENT}%. Убыток: {final_loss:+.2f}$")
+                                            
                                     return
                             else:
                                 logger.info("Значение Value не найдено.")
