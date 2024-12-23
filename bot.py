@@ -20,6 +20,7 @@ CHANNEL = config["CHANNEL"]
 BOT_USERNAME = config["BOT_USERNAME"]
 MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
 MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
+MAX_LOSS_PERCENT = config["MAX_LOSS_PERCENT"]
 
 if not os.path.exists('sessions'):
     os.makedirs('sessions')
@@ -64,7 +65,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
                         
                         while True:
-                            await bot_reply.click(8)
+                            await bot_reply.click(8) # Жмем Refresh
                             await asyncio.sleep(1)
 
                             updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
@@ -92,7 +93,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
-                                    await updated_reply.click(4)
+                                    await updated_reply.click(4) # Жмем кнопку Sell
                                     
                                     await asyncio.sleep(1)
                                     
@@ -110,8 +111,8 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             logger.info(f"Value превышает {MAX_PROFIT_PERCENT}%. Профит: {final_profit:+.2f}$")
                                             
                                     return
-                                elif current_value <= total_cost * (1 + MIN_PROFIT_PERCENT / 100):
-                                    await updated_reply.click(4)
+                                elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
+                                    await updated_reply.click(4) # Жмем кнопку Sell
                                     
                                     await asyncio.sleep(1)
                                     
@@ -126,7 +127,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             
                                             final_loss = total_sale_amount - total_cost
                                             
-                                            logger.info(f"Value упало ниже {MIN_PROFIT_PERCENT}%. Убыток: {final_loss:+.2f}$")
+                                            logger.info(f"Value упало ниже {MAX_LOSS_PERCENT}%. Убыток: {final_loss:+.2f}$")
                                             
                                     return
                             else:
