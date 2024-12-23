@@ -64,7 +64,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
                         
                         while True:
-                            await bot_reply.click(0)
+                            await bot_reply.click(8)
                             await asyncio.sleep(1)
 
                             updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
@@ -78,6 +78,18 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 if current_value == 0.0:
                                     # Закрываем при ручной продаже
                                     logger.info("Value равно 0.0. Прекращаем проверку.")
+                                    
+                                    await asyncio.sleep(1)
+                                    
+                                    async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
+                                        if sale_match := re.search(sold_pattern, sale_reply.text):
+                                            amount_sold = float(sale_match.group(1))
+                                            coin = sale_match.group(2)
+                                            average_price = float(sale_match.group(3))
+                                            total_sale_amount = float(sale_match.group(4))
+                                            
+                                            logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                            
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
                                     await updated_reply.click(4)
@@ -140,6 +152,29 @@ async def monitor_channel(message):
             logger.info("Ссылка не найдена в сообщении")
     except Exception as e:
         logger.error(f"Ошибка при мониторинге канала: {e}")
+        
+async def handle_purchase_message(purchase_reply):
+    purchase_match = re.search(purchase_pattern, purchase_reply.text)
+    if not purchase_match:
+        return None
+    return {
+        "amount": float(purchase_match.group(1)),
+        "coin": purchase_match.group(2),
+        "price": float(purchase_match.group(3)),
+        "total_cost": float(purchase_match.group(4)),
+    }
+
+async def handle_sale_message(sale_reply):
+    sale_match = re.search(sold_pattern, sale_reply.text)
+    if not sale_match:
+        return None
+    return {
+        "amount_sold": float(sale_match.group(1)),
+        "coin": sale_match.group(2),
+        "average_price": float(sale_match.group(3)),
+        "total_sale_amount": float(sale_match.group(4)),
+    }
+
 
 @client.on(events.NewMessage(chats=CHANNEL))
 async def on_message(event):
