@@ -70,7 +70,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         min_profit = MIN_PROFIT_PERCENT
 
                         while True:
-                            await bot_reply.click(8) # Жмем Refresh
+                            await bot_reply.click(8)  # Жмем Refresh
                             await asyncio.sleep(1)
 
                             updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
@@ -97,35 +97,20 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
                                     # Продажа при достижении максимальной прибыли
-                                    await bot_reply.click(4) # Жмем Sell
-                                    await asyncio.sleep(1)
-
-                                    await sell_and_log(user_bot, bot_username, total_cost, max_profit)
-                                    logger.info("Значение Value не найдено. Продано код 0")
+                                    await click_and_sell(bot_reply, user_bot, bot_username, total_cost, max_profit, "Продажа при достижении максимальной прибыли")
                                     return
                                 elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
                                     # Продажа при достижении максимальных убытков
-                                    await bot_reply.click(4) # Жмем Sell
-                                    await asyncio.sleep(1)
-
-                                    await sell_and_log(user_bot, bot_username, total_cost, max_profit)
-                                    logger.info("Значение Value не найдено. Продано код 1")
+                                    await click_and_sell(bot_reply, user_bot, bot_username, total_cost, max_profit, "Продажа при достижении максимальных убытков")
                                     return
-                                elif current_profit < max_profit - (max_profit * (STEP_PROFIT_PERCENT / 100)) and current_profit >= (total_cost * (1 + MIN_PROFIT_PERCENT / 100)):
+                                elif current_profit < max_profit - (max_profit * (STEP_PROFIT_PERCENT / 100)):
                                     # Продажа при падении на STEP_PROFIT_PERCENT от максимального профита
-                                    await bot_reply.click(4)  # Жмем Sell
-                                    await asyncio.sleep(1)
-
-                                    await sell_and_log(user_bot, bot_username, total_cost, max_profit)
-                                    logger.info("Значение Value не найдено. Продано код 2")
+                                    await click_and_sell(bot_reply, user_bot, bot_username, total_cost, max_profit, "Продажа при падении на STEP_PROFIT_PERCENT от максимального профита")
                                     return
                                 elif current_profit >= (total_cost * (1 + MIN_PROFIT_PERCENT / 100)):
-                                  # Продажа при достижении минимальной прибыли
-                                  await bot_reply.click(4)  # Жмем Sell
-                                  await asyncio.sleep(1)
-                                  await sell_and_log(user_bot, bot_username, total_cost, max_profit)
-                                  logger.info("Значение Value не найдено. Продано код 3")
-                                  return
+                                    # Продажа при достижении минимальной прибыли
+                                    await click_and_sell(bot_reply, user_bot, bot_username, total_cost, max_profit, "Продажа при достижении минимальной прибыли")
+                                    return
                             else:
                                 logger.info("Значение Value не найдено.")
                                     
@@ -150,6 +135,13 @@ async def sell_and_log(user_bot, bot_username, total_cost, max_profit):
             
             final_profit = total_sale_amount - total_cost
             logger.info(f"Финальный профит: {final_profit:+.2f}$")
+
+async def click_and_sell(bot_reply, user_bot, bot_username, total_cost, max_profit, log_message):
+    # Функция для продажи и логирования
+    await bot_reply.click(4)  # Жмем Sell
+    await asyncio.sleep(1)
+    await sell_and_log(user_bot, bot_username, total_cost, max_profit)
+    logger.info(log_message)
 
 async def monitor_channel(message):
     try:
