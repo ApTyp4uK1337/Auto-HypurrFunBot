@@ -1,11 +1,11 @@
 {
   "API_ID": "15507600",
   "API_HASH": "7bd6a098de99e8af19d11e78459623df",
-  "SESSION_NAME": "user2",
+  "SESSION_NAME": "main",
   "CHANNEL": "@asdasdasd11ds",
   "BOT_USERNAME": "HypurrFunBot",
   "STEP_PROFIT_PERCENT": 1,
-  "MAX_PROFIT_PERCENT": 5,
+  "MAX_PROFIT_PERCENT": 1,
   "MIN_PROFIT_PERCENT": 1,
-  "MAX_LOSS_PERCENT": -3
+  "MAX_LOSS_PERCENT": -1
 }

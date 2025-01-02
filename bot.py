@@ -23,6 +23,10 @@ MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
 MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
 MAX_LOSS_PERCENT = config["MAX_LOSS_PERCENT"]
 
+BUY_BUTTON = 0
+REFRESH_BUTTON = 9
+SELL_BUTTON = 4
+
 if not os.path.exists('sessions'):
     os.makedirs('sessions')
 
@@ -53,7 +57,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
         async for bot_reply in user_bot.iter_messages(bot_username, limit=1):
             if bot_reply.reply_markup:
                 message_id = bot_reply.id
-                await bot_reply.click(0)
+                await bot_reply.click(BUY_BUTTON)
                 await asyncio.sleep(1)
 
                 # Ожидаем сообщение о покупке
@@ -68,7 +72,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         max_profit = 0.0
                         
                         while True:
-                            await bot_reply.click(8) # Жмем Refresh
+                            await bot_reply.click(REFRESH_BUTTON) # Жмем Refresh
                             await asyncio.sleep(1)
 
                             updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
@@ -99,7 +103,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
-                                    await updated_reply.click(4) # Жмем кнопку Sell
+                                    await updated_reply.click(SELL_BUTTON) # Жмем кнопку Sell
                                     
                                     await asyncio.sleep(1)
                                     
@@ -118,7 +122,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             
                                     return
                                 elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
-                                    await updated_reply.click(4) # Жмем кнопку Sell
+                                    await updated_reply.click(SELL_BUTTON) # Жмем кнопку Sell
                                     
                                     await asyncio.sleep(1)
                                     
