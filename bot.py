@@ -22,6 +22,8 @@ STEP_PROFIT_PERCENT = config["STEP_PROFIT_PERCENT"]
 MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
 MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
 MAX_LOSS_PERCENT = config["MAX_LOSS_PERCENT"]
+MESSAGE_AWAIT = config["MESSAGE_AWAIT"]
+REFRESH_AWAIT = config["REFRESH_AWAIT"]
 
 BUY_BUTTON = 0
 REFRESH_BUTTON = 9
@@ -34,10 +36,10 @@ if not os.path.exists('sessions'):
 client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
 # Регулярные выражения
-link_pattern = fr'http://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)'
-purchase_pattern = r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)"
-sold_pattern = r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)"
-value_pattern = r"Value:\s+`([0-9]+\.[0-9]+)`"
+link_pattern = re.compile(fr'http://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)')
+purchase_pattern = re.compile(r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
+sold_pattern = re.compile(r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
+value_pattern = re.compile(r"Value:\s+`([0-9]+\.[0-9]+)`")
 
 async def send_start_command(bot, bot_username, start_data):
     try:
@@ -51,18 +53,18 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
         logger.info(f"Обрабатываем ответ от бота {bot_username} с данными: {start_data}")
         
         await send_start_command(user_bot, bot_username, start_data)
-        await asyncio.sleep(1)
+        await asyncio.sleep(MESSAGE_AWAIT)
 
         # Получаем следующее сообщение от бота (которое должно содержать кнопки)
         async for bot_reply in user_bot.iter_messages(bot_username, limit=1):
             if bot_reply.reply_markup:
                 message_id = bot_reply.id
                 await bot_reply.click(BUY_BUTTON)
-                await asyncio.sleep(1)
+                await asyncio.sleep(MESSAGE_AWAIT)
 
                 # Ожидаем сообщение о покупке
                 async for purchase_reply in user_bot.iter_messages(bot_username, limit=1):
-                    if purchase_match := re.search(purchase_pattern, purchase_reply.text):
+                    if purchase_match := purchase_pattern.search(purchase_reply.text):
                         amount_bought = float(purchase_match.group(1))
                         coin = purchase_match.group(2)
                         price = float(purchase_match.group(3))
@@ -73,10 +75,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         
                         while True:
                             await bot_reply.click(REFRESH_BUTTON) # Жмем Refresh
-                            await asyncio.sleep(1)
+                            await asyncio.sleep(MESSAGE_AWAIT)
 
                             updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
-                            if value_match := re.search(value_pattern, updated_reply.text):
+                            if value_match := value_pattern.search(updated_reply.text):
                                 current_value = float(value_match.group(1))
                                 
                                 # Вычисляем текущий профит
@@ -90,10 +92,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                     # Закрываем при ручной продаже
                                     logger.info("Value равно 0.0. Прекращаем проверку.")
                                     
-                                    await asyncio.sleep(1)
+                                    await asyncio.sleep(MESSAGE_AWAIT)
                                     
                                     async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
-                                        if sale_match := re.search(sold_pattern, sale_reply.text):
+                                        if sale_match := sold_pattern.search(sale_reply.text):
                                             amount_sold = float(sale_match.group(1))
                                             coin = sale_match.group(2)
                                             average_price = float(sale_match.group(3))
@@ -105,10 +107,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
                                     await updated_reply.click(SELL_BUTTON) # Жмем кнопку Sell
                                     
-                                    await asyncio.sleep(1)
+                                    await asyncio.sleep(MESSAGE_AWAIT)
                                     
                                     async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
-                                        if sale_match := re.search(sold_pattern, sale_reply.text):
+                                        if sale_match := sold_pattern.search(sale_reply.text):
                                             amount_sold = float(sale_match.group(1))
                                             coin = sale_match.group(2)
                                             average_price = float(sale_match.group(3))
@@ -124,10 +126,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
                                     await updated_reply.click(SELL_BUTTON) # Жмем кнопку Sell
                                     
-                                    await asyncio.sleep(1)
+                                    await asyncio.sleep(MESSAGE_AWAIT)
                                     
                                     async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
-                                        if sale_match := re.search(sold_pattern, sale_reply.text):
+                                        if sale_match := sold_pattern.search(sale_reply.text):
                                             amount_sold = float(sale_match.group(1))
                                             coin = sale_match.group(2)
                                             average_price = float(sale_match.group(3))
@@ -140,10 +142,12 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             logger.info(f"Value упало ниже {MAX_LOSS_PERCENT}%. Убыток: {final_loss:+.2f}$")
                                             
                                     return
+
+                                last_value = current_value
                             else:
                                 logger.info("Значение Value не найдено.")
                                     
-                            await asyncio.sleep(2)
+                            await asyncio.sleep(REFRESH_AWAIT)
                     else:
                         logger.info("Сообщение о покупке не найдено.")
             else:
@@ -154,7 +158,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 async def monitor_channel(message):
     try:
         logger.info(f"Обрабатываем сообщение: {message.text}")
-        match = re.search(link_pattern, message.text)
+        match = link_pattern.search(message.text)
         if match:
             start_data = match.group(1)
             logger.info(f"Найдена ссылка, начинаем взаимодействие с ботом {BOT_USERNAME}, start_data: {start_data}")
