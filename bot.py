@@ -3,6 +3,7 @@ import asyncio
 import re
 import logging
 from telethon import TelegramClient, events
+from telethon.sessions import StringSession
 from config import load_config
 
 # Настройка логирования
@@ -18,6 +19,7 @@ API_HASH = config["API_HASH"]
 SESSION_NAME = config["SESSION_NAME"]
 CHANNEL = config["CHANNEL"]
 BOT_USERNAME = config["BOT_USERNAME"]
+ALERTS_CHANNEL = config["ALERTS_CHANNEL"]
 STEP_PROFIT_PERCENT = config["STEP_PROFIT_PERCENT"]
 MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
 MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
@@ -25,6 +27,7 @@ MAX_LOSS_PERCENT = config["MAX_LOSS_PERCENT"]
 MESSAGE_AWAIT = config["MESSAGE_AWAIT"]
 REFRESH_AWAIT = config["REFRESH_AWAIT"]
 
+# Индексы кнопок
 BUY_BUTTON = 0
 REFRESH_BUTTON = 9
 SELL_BUTTON = 4
@@ -70,6 +73,8 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         price = float(purchase_match.group(3))
                         total_cost = float(purchase_match.group(4))
                         logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
+
+                        await send_alert(client, ALERTS_CHANNEL, f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
                         
                         max_profit = 0.0
                         
@@ -91,6 +96,8 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 if current_value == 0.0:
                                     # Закрываем при ручной продаже
                                     logger.info("Value равно 0.0. Прекращаем проверку.")
+
+                                    await send_alert(client, ALERTS_CHANNEL, "Value равно 0.0. Прекращаем проверку")
                                     
                                     await asyncio.sleep(MESSAGE_AWAIT)
                                     
@@ -102,6 +109,8 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             total_sale_amount = float(sale_match.group(4))
                                             
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                            
+                                            await send_alert(client, ALERTS_CHANNEL, f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
                                             
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
@@ -117,6 +126,8 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             total_sale_amount = float(sale_match.group(4))
                                             
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+
+                                            await send_alert(client, ALERTS_CHANNEL, f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
                                             
                                             final_profit = total_sale_amount - total_cost
                                             
@@ -136,6 +147,8 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                             total_sale_amount = float(sale_match.group(4))
                                             
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+
+                                            await send_alert(client, ALERTS_CHANNEL, f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
                                             
                                             final_loss = total_sale_amount - total_cost
                                             
@@ -146,16 +159,24 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                 last_value = current_value
                             else:
                                 logger.info("Значение Value не найдено.")
+
+                                await send_alert(client, ALERTS_CHANNEL, "Значение Value не найдено")
                                     
                             await asyncio.sleep(REFRESH_AWAIT)
                     else:
                         logger.info("Сообщение о покупке не найдено.")
+
+                        await send_alert(client, ALERTS_CHANNEL, "Сообщение о покупке не найдено")
             else:
                 logger.info("Кнопки не найдены в ответе бота.")
+
+                await send_alert(client, ALERTS_CHANNEL, "Кнопки не найдены в ответе бота")
     except Exception as e:
         logger.error(f"Ошибка при обработке сообщения от бота: {e}")
 
-async def monitor_channel(message):
+        await send_alert(client, ALERTS_CHANNEL, "Ошибка при обработке сообщения от бота")
+
+async def monitor_channel(client, message):
     try:
         logger.info(f"Обрабатываем сообщение: {message.text}")
         match = link_pattern.search(message.text)
@@ -165,15 +186,26 @@ async def monitor_channel(message):
             asyncio.create_task(handle_bot_reply(client, BOT_USERNAME, start_data))
         else:
             logger.info("Ссылка не найдена в сообщении")
+
+            await send_alert(client, ALERTS_CHANNEL, "Ссылка не найдена в сообщении")
     except Exception as e:
         logger.error(f"Ошибка при мониторинге канала: {e}")
+
+async def send_alert(client, channel_id, message):
+    if not channel_id:
+        return
+    try:
+        await client.send_message(channel_id, message, parse_mode="HTML")
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомления в канал {channel_id}: {e}")
+
 
 
 @client.on(events.NewMessage(chats=CHANNEL))
 async def on_message(event):
     message = event.message
     logger.info(f"Новое сообщение от канала {CHANNEL}: {message.text}")
-    asyncio.create_task(monitor_channel(message))
+    asyncio.create_task(monitor_channel(client, message))
 
 # Запускаем клиента
 logger.info(f"Бот запущен на сессии {SESSION_NAME} и слушает канал {CHANNEL}...")

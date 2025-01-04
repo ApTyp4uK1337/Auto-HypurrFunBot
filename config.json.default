@@ -4,6 +4,7 @@
   "SESSION_NAME": "",
   "CHANNEL": "@thepitchman",
   "BOT_USERNAME": "HypurrFunBot",
+  "ALERTS_CHANNEL": "",
   "STEP_PROFIT_PERCENT": 20,
   "MAX_PROFIT_PERCENT": 30,
   "MIN_PROFIT_PERCENT": 10,
