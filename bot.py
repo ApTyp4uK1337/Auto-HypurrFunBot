@@ -209,10 +209,6 @@ async def monitor_channel(client, message):
                 logger.info(f"Dev Lock: {hours}h{minutes}m{seconds}s, пропускаем обработку")
                 return
 
-        if dev_lock_match and dev_lock_match.group(1) == "1h0m0s":
-            logger.info("Dev Lock: 1h0m0s, пропускаем обработку")
-            return
-
         match = link_pattern.search(message.text)
 
         if match:
