@@ -39,7 +39,8 @@ if not os.path.exists('sessions'):
 client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
 # Регулярные выражения
-link_pattern = re.compile(fr'http://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)')
+rep_pattern = re.compile(r"Rep:\s*`(\d+)\s*")
+link_pattern = re.compile(fr'https?://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)', re.IGNORECASE)
 purchase_pattern = re.compile(r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
 sold_pattern = re.compile(r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
 value_pattern = re.compile(r"Value:\s+`([0-9]+\.[0-9]+)`")
@@ -79,7 +80,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         max_profit = 0.0
                         
                         while True:
-                            await bot_reply.click(REFRESH_BUTTON) # Жмем Refresh
+                            await bot_reply.click(REFRESH_BUTTON)
                             await asyncio.sleep(MESSAGE_AWAIT)
 
                             updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
@@ -179,17 +180,37 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 async def monitor_channel(client, message):
     try:
         logger.info(f"Обрабатываем сообщение: {message.text}")
+
+        rep_match = rep_pattern.search(message.text)
+
+        if rep_match and int(rep_match.group(1)) < 3:
+            logger.info("Низкая репутация, пропускаем обработку")
+            return
+
         match = link_pattern.search(message.text)
+
         if match:
             start_data = match.group(1)
             logger.info(f"Найдена ссылка, начинаем взаимодействие с ботом {BOT_USERNAME}, start_data: {start_data}")
             asyncio.create_task(handle_bot_reply(client, BOT_USERNAME, start_data))
+        elif message.reply_markup:
+            url = message.reply_markup.rows[0].buttons[0].url
+
+            if url and link_pattern.match(url):
+                logger.info(f"Найдена ссылка в первой кнопке, начинаем взаимодействие с ботом {BOT_USERNAME}, URL: {url}")
+                start_data = url.split('start=')[-1]
+                asyncio.create_task(handle_bot_reply(client, BOT_USERNAME, start_data))
+            else:
+                logger.info(url)
+                logger.info("Ссылка не соответствует паттерну или не найдена в первой кнопке")
+                await send_alert(client, ALERTS_CHANNEL, "Ссылка не соответствует паттерну или не найдена в первой кнопке")
         else:
             logger.info("Ссылка не найдена в сообщении")
 
             await send_alert(client, ALERTS_CHANNEL, "Ссылка не найдена в сообщении")
     except Exception as e:
         logger.error(f"Ошибка при мониторинге канала: {e}")
+
 
 async def send_alert(client, channel_id, message):
     if not channel_id:
