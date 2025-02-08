@@ -21,6 +21,7 @@ CHANNEL = config["CHANNEL"]
 BOT_USERNAME = config["BOT_USERNAME"]
 ALERTS_CHANNEL = config["ALERTS_CHANNEL"]
 MIN_REPUTATION = config["MIN_REPUTATION"]
+MIN_DEV_LOCK = config["MIN_DEV_LOCK"]
 STEP_PROFIT_PERCENT = config["STEP_PROFIT_PERCENT"]
 MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
 MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
@@ -41,7 +42,7 @@ client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
 # Регулярные выражения
 rep_pattern = re.compile(r"Rep:\s*`(\d+)\s*")
-dev_lock_pattern = re.compile(r"Dev Lock:\s*`(\d+h\d+m\d+s)`")
+dev_lock_pattern = re.compile(r"Dev Lock:\s*`(\d+)h(\d+)m(\d+)s`")
 link_pattern = re.compile(fr'https?://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)', re.IGNORECASE)
 purchase_pattern = re.compile(r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
 sold_pattern = re.compile(r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
@@ -190,6 +191,26 @@ async def monitor_channel(client, message):
             return
         
         dev_lock_match = dev_lock_pattern.search(message.text)
+
+        if dev_lock_match:
+            min_dev_lock_pattern = re.compile(r"(\d+)h(\d+)m(\d+)s")
+            min_dev_lock_match = min_dev_lock_pattern.search(MIN_DEV_LOCK)
+
+            if min_dev_lock_match:
+                hours, minutes, seconds = map(int, min_dev_lock_match.groups())
+                min_allowed_seconds = hours * 3600 + minutes * 60 + seconds
+            else:
+                min_allowed_seconds = 1 * 3600
+
+            hours, minutes, seconds = map(int, dev_lock_match.groups())
+            total_seconds = hours * 3600 + minutes * 60 + seconds
+
+            logger.info(min_allowed_seconds)
+            logger.info(total_seconds)
+
+            if total_seconds <= min_allowed_seconds:
+                logger.info(f"Dev Lock: {hours}h{minutes}m{seconds}s, пропускаем обработку")
+                return
 
         if dev_lock_match and dev_lock_match.group(1) == "1h0m0s":
             logger.info("Dev Lock: 1h0m0s, пропускаем обработку")
