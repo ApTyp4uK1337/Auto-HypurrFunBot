@@ -41,6 +41,7 @@ client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
 # Регулярные выражения
 rep_pattern = re.compile(r"Rep:\s*`(\d+)\s*")
+dev_lock_pattern = re.compile(r"Dev Lock:\s*(\d+h\d+m\d+s)")
 link_pattern = re.compile(fr'https?://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)', re.IGNORECASE)
 purchase_pattern = re.compile(r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
 sold_pattern = re.compile(r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
@@ -186,6 +187,12 @@ async def monitor_channel(client, message):
 
         if rep_match and int(rep_match.group(1)) < MIN_REPUTATION:
             logger.info("Низкая репутация, пропускаем обработку")
+            return
+        
+        dev_lock_match = dev_lock_pattern.search(message.text)
+
+        if dev_lock_match and dev_lock_match.group(1) == "1h0m0s":
+            logger.info("Dev Lock: 1h0m0s, пропускаем обработку")
             return
 
         match = link_pattern.search(message.text)
