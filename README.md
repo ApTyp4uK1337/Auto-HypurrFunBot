@@ -6,10 +6,10 @@
 - Convenient setup of stop modes for sale
 
 ### Usage
-- Download the repository and unzip it to a convenient location
-- Customize the configuration files to suit your needs
-- Install the required dependencies using the command `pip install requirements.txt`
-- Run the bot using the command `py bot.py <session_name>`
+1. Download the repository and unzip it to a convenient location
+2. Customize the configuration files to suit your needs
+3. Install the required dependencies using the command `pip install requirements.txt`
+4. Run the bot using the command `py bot.py <session_name>`
 
 ### Setting up configurations
 ##### /config.json
