@@ -41,7 +41,7 @@ client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
 # Регулярные выражения
 rep_pattern = re.compile(r"Rep:\s*`(\d+)\s*")
-dev_lock_pattern = re.compile(r"Dev Lock:\s*(\d+h\d+m\d+s)")
+dev_lock_pattern = re.compile(r"Dev Lock:\s*`(\d+h\d+m\d+s)`")
 link_pattern = re.compile(fr'https?://t.me/{BOT_USERNAME}\?start=([a-zA-Z0-9_]+)', re.IGNORECASE)
 purchase_pattern = re.compile(r"Bought (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
 sold_pattern = re.compile(r"Sold (\d+\.?\d*) (\w+) at an average price of (\d+\.\d+) for \$(\d+\.\d+)")
