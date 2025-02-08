@@ -205,9 +205,6 @@ async def monitor_channel(client, message):
             hours, minutes, seconds = map(int, dev_lock_match.groups())
             total_seconds = hours * 3600 + minutes * 60 + seconds
 
-            logger.info(min_allowed_seconds)
-            logger.info(total_seconds)
-
             if total_seconds <= min_allowed_seconds:
                 logger.info(f"Dev Lock: {hours}h{minutes}m{seconds}s, пропускаем обработку")
                 return
