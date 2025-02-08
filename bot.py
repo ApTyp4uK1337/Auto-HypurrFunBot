@@ -281,11 +281,13 @@ async def on_message(event):
     asyncio.create_task(monitor_channel(client, message))
 
 async def main():
-    await client.start()
-
-    logger.info(f"Бот запущен на сессии {SESSION_NAME} и ожидает сообщений...")
-
-    await client.run_until_disconnected()
+    try:
+        await client.start()
+        logger.info(f"Бот запущен на сессии {SESSION_NAME} и ожидает сообщений...")
+        await client.run_until_disconnected()
+    except KeyboardInterrupt:
+        logger.info("Получен сигнал завершения работы. Завершаем...")
+        await client.disconnect()
 
 # Запускаем клиента
 client.loop.run_until_complete(main())
