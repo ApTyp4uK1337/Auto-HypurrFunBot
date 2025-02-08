@@ -1,4 +1,4 @@
-# 🐰 Ayto HypurrFunBot
+# 🐰 Auto HypurrFunBot
 
 ### Possibilities
 - Working with multiple accounts with individual configurations
