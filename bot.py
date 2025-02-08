@@ -20,6 +20,7 @@ SESSION_NAME = config["SESSION_NAME"]
 CHANNEL = config["CHANNEL"]
 BOT_USERNAME = config["BOT_USERNAME"]
 ALERTS_CHANNEL = config["ALERTS_CHANNEL"]
+MIN_REPUTATION = config["MIN_REPUTATION"]
 STEP_PROFIT_PERCENT = config["STEP_PROFIT_PERCENT"]
 MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
 MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
@@ -183,7 +184,7 @@ async def monitor_channel(client, message):
 
         rep_match = rep_pattern.search(message.text)
 
-        if rep_match and int(rep_match.group(1)) < 3:
+        if rep_match and int(rep_match.group(1)) < MIN_REPUTATION:
             logger.info("Низкая репутация, пропускаем обработку")
             return
 
