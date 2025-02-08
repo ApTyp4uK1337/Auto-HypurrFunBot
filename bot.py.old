@@ -1,58 +1,38 @@
 import os
-import sys
 import asyncio
 import re
 import logging
-import shutil
-import json
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
+from config import load_config
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Загружаем конфигурацию
+config = load_config()
 
-with open("config.json", "r", encoding="utf-8") as f:
-    config = json.load(f)
-
-APP_ID = config["APP_ID"]
-APP_HASH = config["APP_HASH"]
+# Извлекаем параметры из конфигурации
+API_ID = config["API_ID"]
+API_HASH = config["API_HASH"]
+SESSION_NAME = config["SESSION_NAME"]
+CHANNEL = config["CHANNEL"]
 BOT_USERNAME = config["BOT_USERNAME"]
+ALERTS_CHANNEL = config["ALERTS_CHANNEL"]
+MIN_REPUTATION = config["MIN_REPUTATION"]
+MIN_DEV_LOCK = config["MIN_DEV_LOCK"]
+BAN_WORDS = config["BAN_WORDS"]
+STEP_PROFIT_PERCENT = config["STEP_PROFIT_PERCENT"]
+MAX_PROFIT_PERCENT = config["MAX_PROFIT_PERCENT"]
+MIN_PROFIT_PERCENT = config["MIN_PROFIT_PERCENT"]
+MAX_LOSS_PERCENT = config["MAX_LOSS_PERCENT"]
 MESSAGE_AWAIT = config["MESSAGE_AWAIT"]
 REFRESH_AWAIT = config["REFRESH_AWAIT"]
+
+# Индексы кнопок
 BUY_BUTTON = 0
 REFRESH_BUTTON = 9
 SELL_BUTTON = 4
 
-if len(sys.argv) < 2:
-    SESSION_NAME = "default"
-else:
-    SESSION_NAME = sys.argv[1]
-
-SESSION_FOLDER = os.path.join("sessions", SESSION_NAME)
-SESSION_FILE = os.path.join(SESSION_FOLDER, f"{SESSION_NAME}.session")
-USER_CONFIG_FILE = os.path.join(SESSION_FOLDER, "config.json")
-
-if not os.path.exists(SESSION_FOLDER):
-    os.makedirs(SESSION_FOLDER)
-
-if not os.path.exists(USER_CONFIG_FILE):
-    shutil.copy2("sessions/default_config.json", USER_CONFIG_FILE)
-
-with open(USER_CONFIG_FILE, "r", encoding="utf-8") as f:
-    user_config = json.load(f)
-
-CHANNELS = user_config["CHANNELS"]
-ALERTS_CHANNEL = user_config["ALERTS_CHANNEL"]
-MIN_REPUTATION = user_config["MIN_REPUTATION"]
-MIN_DEV_LOCK = user_config["MIN_DEV_LOCK"]
-BAN_WORDS = user_config["BAN_WORDS"]
-MAX_PROFIT_PERCENT = user_config["MAX_PROFIT_PERCENT"]
-MIN_PROFIT_PERCENT = user_config["MIN_PROFIT_PERCENT"]
-STEP_PROFIT_PERCENT = user_config["STEP_PROFIT_PERCENT"]
-MAX_LOSS_PERCENT = user_config["MAX_LOSS_PERCENT"]
-
-client = TelegramClient(SESSION_FILE, APP_ID, APP_HASH)
+# Создаем клиент
+client = TelegramClient(f"sessions/{SESSION_NAME}", API_ID, API_HASH)
 
 # Регулярные выражения
 rep_pattern = re.compile(r"Rep:\s*`(\d+)\s*")
@@ -272,20 +252,15 @@ async def send_alert(client, channel_id, message):
     except Exception as e:
         logger.error(f"Ошибка при отправке уведомления в канал {channel_id}: {e}")
 
-CHANNELS_LIST = [ch.strip() for ch in CHANNELS.split(",")]
 
-@client.on(events.NewMessage(chats=CHANNELS_LIST))
+
+@client.on(events.NewMessage(chats=CHANNEL))
 async def on_message(event):
     message = event.message
-    logger.info(f"Новое сообщение от канала {event.chat_id}: {message.text}")
+    logger.info(f"Новое сообщение от канала {CHANNEL}: {message.text}")
     asyncio.create_task(monitor_channel(client, message))
 
-async def main():
-    await client.start()
-
-    logger.info(f"Бот запущен на сессии {SESSION_NAME} и ожидает сообщений...")
-
-    await client.run_until_disconnected()
-
 # Запускаем клиента
-client.loop.run_until_complete(main())
+logger.info(f"Бот запущен на сессии {SESSION_NAME} и слушает канал {CHANNEL}...")
+client.start()
+client.run_until_disconnected()
