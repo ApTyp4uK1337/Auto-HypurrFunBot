@@ -1,5 +1,7 @@
 {
-  "CHANNELS": "HfunAlerts",
+  "CHANNELS": [
+    "HfunAlerts"
+  ],
   "ALERTS_CHANNEL": "",
   "MIN_REPUTATION": 4,
   "MIN_DEV_LOCK": "2h0m0s",
@@ -7,5 +9,5 @@
   "STEP_PROFIT_PERCENT": 5,
   "MAX_PROFIT_PERCENT": 25,
   "MIN_PROFIT_PERCENT": -10,
-  "MAX_LOSS_PERCENT": -10
+  "MAX_LOSS_PERCENT": 10
 }

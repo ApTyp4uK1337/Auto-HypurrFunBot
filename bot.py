@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 with open("config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
-APP_ID = config["APP_ID"]
-APP_HASH = config["APP_HASH"]
+API_ID = config["APP_ID"]
+API_HASH = config["APP_HASH"]
 BOT_USERNAME = config["BOT_USERNAME"]
 MESSAGE_AWAIT = config["MESSAGE_AWAIT"]
 REFRESH_AWAIT = config["REFRESH_AWAIT"]
@@ -53,7 +53,7 @@ MIN_PROFIT_PERCENT = user_config["MIN_PROFIT_PERCENT"]
 STEP_PROFIT_PERCENT = user_config["STEP_PROFIT_PERCENT"]
 MAX_LOSS_PERCENT = user_config["MAX_LOSS_PERCENT"]
 
-client = TelegramClient(SESSION_FILE, APP_ID, APP_HASH)
+client = TelegramClient(SESSION_FILE, API_ID, API_HASH)
 
 # Регулярные выражения
 rep_pattern = re.compile(r"Rep:\s*`(\d+)\s*")
@@ -83,6 +83,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
         async for bot_reply in user_bot.iter_messages(bot_username, limit=1):
             if bot_reply.reply_markup:
                 message_id = bot_reply.id
+                
                 await bot_reply.click(BUY_BUTTON)
                 await asyncio.sleep(MESSAGE_AWAIT)
 

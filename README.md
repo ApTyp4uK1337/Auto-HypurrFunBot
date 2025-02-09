@@ -1,35 +1,42 @@
 # 🐰 Auto HypurrFunBot
 
-### Possibilities
-- Working with multiple accounts with individual configurations
-- Flexible configuration of tokens allowed for purchase
-- Convenient setup of stop modes for sale
+## Возможности  
+- Поддержка нескольких аккаунтов с индивидуальными настройками  
+- Гибкая настройка токенов, доступных для покупки  
+- Удобная настройка режимов остановки продажи  
 
-### Usage
-1. Download the repository and unzip it to a convenient location
-2. Customize the configuration files to suit your needs
-3. Install the required dependencies using the command `pip install requirements.txt`
-4. Run the bot using the command `py bot.py <session_name>`
+## Установка и запуск  
+1. Скачайте репозиторий и распакуйте его в удобное место.  
+2. Настройте конфигурационные файлы под свои нужды.  
+3. Установите необходимые зависимости с помощью команды:  
+   ```sh
+   pip install -r requirements.txt
+   ```
+4. Запустите бота командой:  
+   ```sh
+   python bot.py <session_name>
+   ```
+   Где `<session_name>` — имя сессии, соответствующее файлу в папке `sessions`.  
 
-### Setting up configurations
-##### /config.json
-Parameter        | Example                             | Description
------------------|-------------------------------------|------------------------------------------------
-APP_ID           | 0123456789                          | Telegram app api id
-APP_HASH         | c87d83cbceb52b40a6ceff535741ebd3    | Telegram app api hash
-BOT_USERNAME     | HypurrFunBot                        | HypurrFunBot username
-MESSAGE_AWAIT    | 0.5                                 | Waiting for message to be received in seconds
-REFRESH_AWAIT    | 2                                   | Delay between message updates
+## Настройка конфигураций  
+### `config.json` (основные параметры)  
+| Параметр        | Пример                             | Описание                                           |
+|-----------------|------------------------------------|----------------------------------------------------|
+| `API_ID`        | `0123456789`                       | API ID Telegram-приложения                         |
+| `API_HASH`      | `c87d83cbceb52b40a6ceff535741ebd3` | API Hash Telegram-приложения                       |
+| `BOT_USERNAME`  | `HypurrFunBot`                     | Имя бота HypurrFunBot                              |
+| `MESSAGE_AWAIT` | `0.5`                              | Ожидание получения сообщения (в секундах)          |
+| `REFRESH_AWAIT` | `2`                                | Задержка между обновлениями сообщений (в секундах) |
 
-##### /sessions/default_config.json
-Parameter              | Example            | Description
------------------------|--------------------|-----------------------------------------------------------
-CHANNELS               | HfunAlerts         | Comma separated list of channels
-ALERTS_CHANNEL         | -1000000009        | Channel ID or username for notifications
-MIN_REPUTATION         | 3                  | Minimum acceptable reputation of a token creator
-MIN_DEV_LOCK           | 1h0m0s             | Minimum Dev Lock
-BAN_WORDS              | test, testing      | List of prohibited words in the text separated by commas
-STEP_PROFIT_PERCENT    | 5                  | Coming soon
-MAX_PROFIT_PERCENT     | 30                 | Maximum profit percentage for sale
-MIN_PROFIT_PERCENT     | -10                | Minimum profit percentage for sale
-MAX_LOSS_PERCENT       | -10                | Coming soon
+### `sessions/default_config.json` (настройки сессий)  
+| Параметр              | Пример                           | Описание                                                  |
+|-----------------------|----------------------------------|-----------------------------------------------------------|
+| `CHANNELS`            | `["HfunAlerts", -1002374249628]` | Список каналов (ID или имена) для мониторинга             |
+| `ALERTS_CHANNEL`      | `-1000000009`                    | Канал для уведомлений (ID или имя)                        |
+| `MIN_REPUTATION`      | `3`                              | Минимальная репутация создателя токена                    |
+| `MIN_DEV_LOCK`        | `1h0m0s`                         | Минимальный Dev Lock (время блокировки разработчиком)     |
+| `BAN_WORDS`           | `["test", "testing"]`            | Список запрещенных слов в тексте (массив строк)           |
+| `STEP_PROFIT_PERCENT` | `5`                              | *Скоро будет добавлено*                                   |
+| `MAX_PROFIT_PERCENT`  | `30`                             | Максимальный процент прибыли для продажи                  |
+| `MIN_PROFIT_PERCENT`  | `-10`                            | Минимальный процент прибыли для продажи                   |
+| `MAX_LOSS_PERCENT`    | `-10`                            | *Скоро будет добавлено*                                   |
