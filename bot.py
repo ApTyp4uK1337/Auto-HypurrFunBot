@@ -16,14 +16,14 @@ logger = logging.getLogger(__name__)
 with open("config.json", "r", encoding="utf-8") as f:
     config = json.load(f)
 
-API_ID = config["APP_ID"]
-API_HASH = config["APP_HASH"]
+API_ID = config["API_ID"]
+API_HASH = config["API_HASH"]
 BOT_USERNAME = config["BOT_USERNAME"]
 MESSAGE_AWAIT = config["MESSAGE_AWAIT"]
 REFRESH_AWAIT = config["REFRESH_AWAIT"]
 BUY_BUTTON = 0
 REFRESH_BUTTON = 9
-SELL_BUTTON = 4
+SELL_BUTTON = 3
 
 if len(sys.argv) < 2:
     SESSION_NAME = "default"
@@ -49,9 +49,9 @@ MIN_REPUTATION = user_config["MIN_REPUTATION"]
 MIN_DEV_LOCK = user_config["MIN_DEV_LOCK"]
 BAN_WORDS = user_config["BAN_WORDS"]
 MAX_PROFIT_PERCENT = user_config["MAX_PROFIT_PERCENT"]
-MIN_PROFIT_PERCENT = user_config["MIN_PROFIT_PERCENT"]
-STEP_PROFIT_PERCENT = user_config["STEP_PROFIT_PERCENT"]
 MAX_LOSS_PERCENT = user_config["MAX_LOSS_PERCENT"]
+# MIN_PROFIT_PERCENT = user_config["MIN_PROFIT_PERCENT"]
+# STEP_PROFIT_PERCENT = user_config["STEP_PROFIT_PERCENT"]
 
 client = TelegramClient(SESSION_FILE, API_ID, API_HASH)
 
@@ -83,7 +83,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
         async for bot_reply in user_bot.iter_messages(bot_username, limit=1):
             if bot_reply.reply_markup:
                 message_id = bot_reply.id
-                
+
                 await bot_reply.click(BUY_BUTTON)
                 await asyncio.sleep(MESSAGE_AWAIT)
 
@@ -96,7 +96,9 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                         total_cost = float(purchase_match.group(4))
                         logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
 
-                        await send_alert(client, ALERTS_CHANNEL, f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
+                        text = f"💰 Куплено: <b>{amount_bought} {coin}</b> по средней цене <b>{price}$</b> за <b>{total_cost}</b>\n\n"
+
+                        await send_alert(client, ALERTS_CHANNEL, text)
 
                         max_profit = 0.0
 
@@ -119,7 +121,9 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                     # Закрываем при ручной продаже
                                     logger.info("Value равно 0.0. Прекращаем проверку.")
 
-                                    await send_alert(client, ALERTS_CHANNEL, "Value равно 0.0. Прекращаем проверку")
+                                    text = f"💸 Баланс равен 0.00$. Прекращаем проверку.\n\n"
+
+                                    await send_alert(client, ALERTS_CHANNEL, text)
 
                                     await asyncio.sleep(MESSAGE_AWAIT)
 
@@ -132,7 +136,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
 
-                                            await send_alert(client, ALERTS_CHANNEL, f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                            text = f"😶 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}</b>\n\n"
+                                            text += f"<blockquote>Продажа была осуществлена вручную.</blockquote>\n"
+
+                                            await send_alert(client, ALERTS_CHANNEL, text)
 
                                     return
                                 elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
@@ -150,11 +157,14 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
 
-                                            await send_alert(client, ALERTS_CHANNEL, f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
-
                                             final_profit = total_sale_amount - total_cost
 
                                             logger.info(f"Value превышает {MAX_PROFIT_PERCENT}%. Профит: {final_profit:+.2f}$")
+
+                                            text = f"🤑 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}</b>\n\n"
+                                            text += f"<blockquote>📈 Цена выросла выше <b>{MAX_PROFIT_PERCENT}%</b>. Прибыль: <b>{final_profit:+.2f}$</b></blockquote>\n"
+
+                                            await send_alert(client, ALERTS_CHANNEL, text)
 
                                     return
                                 elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
@@ -172,11 +182,14 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
 
-                                            await send_alert(client, ALERTS_CHANNEL, f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
-
                                             final_loss = total_sale_amount - total_cost
 
                                             logger.info(f"Value упало ниже {MAX_LOSS_PERCENT}%. Убыток: {final_loss:+.2f}$")
+
+                                            text = f"😰 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}</b>\n\n"
+                                            text += f"<blockquote>📉 Цена упала ниже <b>{MAX_LOSS_PERCENT}%</b>. Убыток: <b>{final_loss:+.2f}$</b></blockquote>\n"
+
+                                            await send_alert(client, ALERTS_CHANNEL, text)
 
                                     return
 
@@ -299,10 +312,8 @@ async def send_alert(client, channel_id, message):
     except Exception as e:
         logger.error(f"Ошибка при отправке уведомления в канал {channel_id}: {e}")
 
-CHANNELS_LIST = [ch.strip() for ch in CHANNELS.split(",")]
 
-
-@client.on(events.NewMessage(chats=CHANNELS_LIST))
+@client.on(events.NewMessage(chats=CHANNELS))
 async def on_message(event):
     message = event.message
     logger.info(f"Новое сообщение от канала {event.chat_id}: {message.text}")
