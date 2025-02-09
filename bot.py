@@ -71,6 +71,11 @@ async def send_start_command(bot, bot_username, start_data):
     except Exception as e:
         logger.error(f"Ошибка при отправке команды /start: {e}")
 
+        text = "<b>❗️ Неудалось отправить команду /start</b>\n\n"
+        text += f"<blockquoute>Причина: {e}</blockquote>\n"
+
+        await send_alert(client, ALERTS_CHANNEL, text)
+
 
 async def handle_bot_reply(user_bot, bot_username, start_data):
     try:
@@ -136,7 +141,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 
                                             logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
 
-                                            text = f"😶 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}</b>\n\n"
+                                            text = f"😶 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
                                             text += f"<blockquote>Продажа была осуществлена вручную.</blockquote>\n"
 
                                             await send_alert(client, ALERTS_CHANNEL, text)
@@ -161,7 +166,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 
                                             logger.info(f"Value превышает {MAX_PROFIT_PERCENT}%. Профит: {final_profit:+.2f}$")
 
-                                            text = f"🤑 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}</b>\n\n"
+                                            text = f"🤑 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
                                             text += f"<blockquote>📈 Цена выросла выше <b>{MAX_PROFIT_PERCENT}%</b>. Прибыль: <b>{final_profit:+.2f}$</b></blockquote>\n"
 
                                             await send_alert(client, ALERTS_CHANNEL, text)
@@ -186,7 +191,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
 
                                             logger.info(f"Value упало ниже {MAX_LOSS_PERCENT}%. Убыток: {final_loss:+.2f}$")
 
-                                            text = f"😰 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}</b>\n\n"
+                                            text = f"😰 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
                                             text += f"<blockquote>📉 Цена упала ниже <b>{MAX_LOSS_PERCENT}%</b>. Убыток: <b>{final_loss:+.2f}$</b></blockquote>\n"
 
                                             await send_alert(client, ALERTS_CHANNEL, text)
@@ -203,7 +208,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                     else:
                         logger.info("Сообщение о покупке не найдено.")
 
-                        await send_alert(client, ALERTS_CHANNEL, "Сообщение о покупке не найдено")
+                        await send_alert(client, ALERTS_CHANNEL, "🔎 Сообщение о покупке не найдено.")
             else:
                 logger.info("Кнопки не найдены в ответе бота.")
 
@@ -211,7 +216,10 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
     except Exception as e:
         logger.error(f"Ошибка при обработке сообщения от бота: {e}")
 
-        await send_alert(client, ALERTS_CHANNEL, "Ошибка при обработке сообщения от бота")
+        text = "<b>❗️ Ошибка при обработке сообщения от бота</b>\n\n"
+        text += f"<blockquoute>Причина: {e}</blockquote>\n"
+
+        await send_alert(client, ALERTS_CHANNEL, text)
 
 
 async def monitor_channel(client, message):
@@ -319,6 +327,10 @@ async def on_message(event):
     logger.info(f"Новое сообщение от канала {event.chat_id}: {message.text}")
     asyncio.create_task(monitor_channel(client, message))
 
+@client.on(events.NewMessage(outgoing=True, pattern='!ping'))
+async def handler(event):
+    await event.respond('!pong')
+
 
 async def main():
     try:
@@ -328,6 +340,7 @@ async def main():
     except KeyboardInterrupt:
         logger.info("Получен сигнал завершения работы. Завершаем...")
         await client.disconnect()
+
 
 # Запускаем клиента
 client.loop.run_until_complete(main())
