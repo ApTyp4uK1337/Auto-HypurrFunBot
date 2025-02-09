@@ -126,9 +126,7 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
                                     # Закрываем при ручной продаже
                                     logger.info("Value равно 0.0. Прекращаем проверку.")
 
-                                    text = f"💸 Баланс равен 0.00$. Прекращаем проверку.\n\n"
-
-                                    await send_alert(client, ALERTS_CHANNEL, text)
+                                    await send_alert(client, ALERTS_CHANNEL, "💸 Баланс равен <b>0.00$</b>. Прекращаем проверку.")
 
                                     await asyncio.sleep(MESSAGE_AWAIT)
 
