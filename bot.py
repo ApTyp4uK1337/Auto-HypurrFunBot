@@ -89,124 +89,131 @@ async def handle_bot_reply(user_bot, bot_username, start_data):
             if bot_reply.reply_markup:
                 message_id = bot_reply.id
 
-                await bot_reply.click(BUY_BUTTON)
-                await asyncio.sleep(MESSAGE_AWAIT)
+                # Пытаемся нажать кнопку BUY_BUTTON с интервалом, пока не получим сообщение о покупке
+                while True:
+                    try:
+                        await bot_reply.click(BUY_BUTTON)
+                        await asyncio.sleep(MESSAGE_AWAIT)
 
-                # Ожидаем сообщение о покупке
-                async for purchase_reply in user_bot.iter_messages(bot_username, limit=1):
-                    if purchase_match := purchase_pattern.search(purchase_reply.text):
-                        amount_bought = float(purchase_match.group(1))
-                        coin = purchase_match.group(2)
-                        price = float(purchase_match.group(3))
-                        total_cost = float(purchase_match.group(4))
-                        logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
+                        # Ожидаем сообщение о покупке
+                        async for purchase_reply in user_bot.iter_messages(bot_username, limit=1):
+                            if purchase_match := purchase_pattern.search(purchase_reply.text):
+                                amount_bought = float(purchase_match.group(1))
+                                coin = purchase_match.group(2)
+                                price = float(purchase_match.group(3))
+                                total_cost = float(purchase_match.group(4))
+                                logger.info(f"Куплено: {amount_bought} {coin} по цене {price} за {total_cost}$")
 
-                        text = f"💰 Куплено: <b>{amount_bought} {coin}</b> по средней цене <b>{price}$</b> за <b>{total_cost}</b>\n\n"
+                                text = f"💰 Куплено: <b>{amount_bought} {coin}</b> по средней цене <b>{price}$</b> за <b>{total_cost}</b>\n\n"
 
-                        await send_alert(client, ALERTS_CHANNEL, text)
+                                await send_alert(client, ALERTS_CHANNEL, text)
 
-                        max_profit = 0.0
+                                max_profit = 0.0
 
-                        while True:
-                            await bot_reply.click(REFRESH_BUTTON)
-                            await asyncio.sleep(MESSAGE_AWAIT)
-
-                            updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
-                            if value_match := value_pattern.search(updated_reply.text):
-                                current_value = float(value_match.group(1))
-
-                                # Вычисляем текущий профит
-                                current_profit = current_value - total_cost
-                                logger.info(f"Текущее значение Value: {current_value} /// Профит: {current_profit:+.2f}$")
-
-                                # Обновляем максимальный профит
-                                max_profit = max(max_profit, current_profit)
-
-                                if current_value == 0.0:
-                                    # Закрываем при ручной продаже
-                                    logger.info("Value равно 0.0. Прекращаем проверку.")
-
-                                    await send_alert(client, ALERTS_CHANNEL, "💸 Баланс равен <b>0.00$</b>. Прекращаем проверку.")
-
+                                while True:
+                                    await bot_reply.click(REFRESH_BUTTON)
                                     await asyncio.sleep(MESSAGE_AWAIT)
 
-                                    async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
-                                        if sale_match := sold_pattern.search(sale_reply.text):
-                                            amount_sold = float(sale_match.group(1))
-                                            coin = sale_match.group(2)
-                                            average_price = float(sale_match.group(3))
-                                            total_sale_amount = float(sale_match.group(4))
+                                    updated_reply = await user_bot.get_messages(bot_username, ids=message_id)
+                                    if value_match := value_pattern.search(updated_reply.text):
+                                        current_value = float(value_match.group(1))
 
-                                            logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                        # Вычисляем текущий профит
+                                        current_profit = current_value - total_cost
+                                        logger.info(f"Текущее значение Value: {current_value} /// Профит: {current_profit:+.2f}$")
 
-                                            text = f"😶 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
-                                            text += f"<blockquote>Продажа была осуществлена вручную.</blockquote>\n"
+                                        # Обновляем максимальный профит
+                                        max_profit = max(max_profit, current_profit)
 
-                                            await send_alert(client, ALERTS_CHANNEL, text)
+                                        if current_value == 0.0:
+                                            # Закрываем при ручной продаже
+                                            logger.info("Value равно 0.0. Прекращаем проверку.")
 
-                                    return
-                                elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
-                                    # Жмем кнопку Sell
-                                    await updated_reply.click(SELL_BUTTON)
+                                            await send_alert(client, ALERTS_CHANNEL, "💸 Баланс равен <b>0.00$</b>. Прекращаем проверку.")
 
-                                    await asyncio.sleep(MESSAGE_AWAIT)
+                                            await asyncio.sleep(MESSAGE_AWAIT)
 
-                                    async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
-                                        if sale_match := sold_pattern.search(sale_reply.text):
-                                            amount_sold = float(sale_match.group(1))
-                                            coin = sale_match.group(2)
-                                            average_price = float(sale_match.group(3))
-                                            total_sale_amount = float(sale_match.group(4))
+                                            async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
+                                                if sale_match := sold_pattern.search(sale_reply.text):
+                                                    amount_sold = float(sale_match.group(1))
+                                                    coin = sale_match.group(2)
+                                                    average_price = float(sale_match.group(3))
+                                                    total_sale_amount = float(sale_match.group(4))
 
-                                            logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                                    logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
 
-                                            final_profit = total_sale_amount - total_cost
+                                                    text = f"😶 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
+                                                    text += f"<blockquote>Продажа была осуществлена вручную.</blockquote>\n"
 
-                                            logger.info(f"Value превышает {MAX_PROFIT_PERCENT}%. Профит: {final_profit:+.2f}$")
+                                                    await send_alert(client, ALERTS_CHANNEL, text)
 
-                                            text = f"🤑 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
-                                            text += f"<blockquote>📈 Цена выросла выше <b>{MAX_PROFIT_PERCENT}%</b>. Прибыль: <b>{final_profit:+.2f}$</b></blockquote>\n"
+                                            return
+                                        elif current_value >= total_cost * (1 + MAX_PROFIT_PERCENT / 100):
+                                            # Жмем кнопку Sell
+                                            await updated_reply.click(SELL_BUTTON)
 
-                                            await send_alert(client, ALERTS_CHANNEL, text)
+                                            await asyncio.sleep(MESSAGE_AWAIT)
 
-                                    return
-                                elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
-                                    # Жмем кнопку Sell
-                                    await updated_reply.click(SELL_BUTTON)
+                                            async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
+                                                if sale_match := sold_pattern.search(sale_reply.text):
+                                                    amount_sold = float(sale_match.group(1))
+                                                    coin = sale_match.group(2)
+                                                    average_price = float(sale_match.group(3))
+                                                    total_sale_amount = float(sale_match.group(4))
 
-                                    await asyncio.sleep(MESSAGE_AWAIT)
+                                                    logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
 
-                                    async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
-                                        if sale_match := sold_pattern.search(sale_reply.text):
-                                            amount_sold = float(sale_match.group(1))
-                                            coin = sale_match.group(2)
-                                            average_price = float(sale_match.group(3))
-                                            total_sale_amount = float(sale_match.group(4))
+                                                    final_profit = total_sale_amount - total_cost
 
-                                            logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+                                                    logger.info(f"Value превышает {MAX_PROFIT_PERCENT}%. Профит: {final_profit:+.2f}$")
 
-                                            final_loss = total_sale_amount - total_cost
+                                                    text = f"🤑 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
+                                                    text += f"<blockquote>📈 Цена выросла выше <b>{MAX_PROFIT_PERCENT}%</b>. Прибыль: <b>{final_profit:+.2f}$</b></blockquote>\n"
 
-                                            logger.info(f"Value упало ниже {MAX_LOSS_PERCENT}%. Убыток: {final_loss:+.2f}$")
+                                                    await send_alert(client, ALERTS_CHANNEL, text)
 
-                                            text = f"😰 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
-                                            text += f"<blockquote>📉 Цена упала ниже <b>{MAX_LOSS_PERCENT}%</b>. Убыток: <b>{final_loss:+.2f}$</b></blockquote>\n"
+                                            return
+                                        elif current_value <= total_cost * (1 + MAX_LOSS_PERCENT / 100):
+                                            # Жмем кнопку Sell
+                                            await updated_reply.click(SELL_BUTTON)
 
-                                            await send_alert(client, ALERTS_CHANNEL, text)
+                                            await asyncio.sleep(MESSAGE_AWAIT)
 
-                                    return
+                                            async for sale_reply in user_bot.iter_messages(bot_username, limit=1):
+                                                if sale_match := sold_pattern.search(sale_reply.text):
+                                                    amount_sold = float(sale_match.group(1))
+                                                    coin = sale_match.group(2)
+                                                    average_price = float(sale_match.group(3))
+                                                    total_sale_amount = float(sale_match.group(4))
 
-                                last_value = current_value
+                                                    logger.info(f"Продано: {amount_sold} {coin} по средней цене {average_price} за {total_sale_amount}$")
+
+                                                    final_loss = total_sale_amount - total_cost
+
+                                                    logger.info(f"Value упало ниже {MAX_LOSS_PERCENT}%. Убыток: {final_loss:+.2f}$")
+
+                                                    text = f"😰 Продано: <b>{amount_sold} {coin}</b> по средней цене <b>{average_price}$</b> за <b>{total_sale_amount}$</b>\n\n"
+                                                    text += f"<blockquote>📉 Цена упала ниже <b>{MAX_LOSS_PERCENT}%</b>. Убыток: <b>{final_loss:+.2f}$</b></blockquote>\n"
+
+                                                    await send_alert(client, ALERTS_CHANNEL, text)
+
+                                            return
+
+                                        last_value = current_value
+                                    else:
+                                        logger.info("Значение Value не найдено.")
+
+                                        await send_alert(client, ALERTS_CHANNEL, "Значение Value не найдено")
+
+                                    await asyncio.sleep(REFRESH_AWAIT)
                             else:
-                                logger.info("Значение Value не найдено.")
+                                logger.info("Сообщение о покупке не найдено.")
 
-                                await send_alert(client, ALERTS_CHANNEL, "Значение Value не найдено")
+                                await send_alert(client, ALERTS_CHANNEL, "🔎 Сообщение о покупке не найдено.")
 
-                            await asyncio.sleep(REFRESH_AWAIT)
-                    else:
-                        logger.info("Сообщение о покупке не найдено.")
-
-                        await send_alert(client, ALERTS_CHANNEL, "🔎 Сообщение о покупке не найдено.")
+                                await asyncio.sleep(2)
+                    except Exception as e:
+                        logger.error(f"Ошибка при нажатии кнопки BUY_BUTTON: {e}")
             else:
                 logger.info("Кнопки не найдены в ответе бота.")
 
