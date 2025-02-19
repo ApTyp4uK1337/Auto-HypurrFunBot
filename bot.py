@@ -328,6 +328,7 @@ async def send_alert(client, channel_id, message):
 
 @client.on(events.NewMessage(chats=CHANNELS))
 async def on_message(event):
+    logger.info(event);
     message = event.message
     logger.info(f"Новое сообщение от канала {event.chat_id}: {message.text}")
     asyncio.create_task(monitor_channel(client, message))
