@@ -50,8 +50,6 @@ MIN_DEV_LOCK = user_config["MIN_DEV_LOCK"]
 BAN_WORDS = user_config["BAN_WORDS"]
 MAX_PROFIT_PERCENT = user_config["MAX_PROFIT_PERCENT"]
 MAX_LOSS_PERCENT = user_config["MAX_LOSS_PERCENT"]
-# MIN_PROFIT_PERCENT = user_config["MIN_PROFIT_PERCENT"]
-# STEP_PROFIT_PERCENT = user_config["STEP_PROFIT_PERCENT"]
 
 client = TelegramClient(SESSION_FILE, API_ID, API_HASH)
 
