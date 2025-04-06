@@ -1,5 +1,5 @@
 <div align="center">
-<a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README_ru.md" title="Версия на русском">:ru" Версия на русском</a>
+<a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README_ru.md" title="Версия на русском">:ru: Версия на русском</a>
 </div>
 
 # 🐰 Auto HypurrFunBot
