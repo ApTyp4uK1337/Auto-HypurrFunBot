@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f1fa-1f1f8.png" height="20" width="20"> <a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README.md" title="English version">:us: English version</a>
+<a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README.md" title="English version">:us: English version</a>
 </div>
 
 # 🐰 Auto HypurrFunBot
