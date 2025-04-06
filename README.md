@@ -1,3 +1,7 @@
+<div align="center">
+<a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README_en.md" title="English version">English version</a>
+</div>
+
 # 🐰 Auto HypurrFunBot
 
 Auto HypurrFunBot — это автоматизированный бот для Telegram, предназначенный для мониторинга каналов и взаимодействия с ботом **[HypurrFunBot](https://t.me/HypurrFunBot)**.
@@ -42,3 +46,6 @@ Auto HypurrFunBot — это автоматизированный бот для 
 | `BAN_WORDS`           | `"test, testing, dont buy"`      | Список запрещенных слов в тексте                          |
 | `MAX_PROFIT_PERCENT`  | `30`                             | Максимальный процент прибыли для продажи                  |
 | `MAX_LOSS_PERCENT`    | `-10`                            | Максимальный процент убытка для продажи                   |
+
+## Остались вопросы?
+<a href="https://t.me/aptyp4uk1337"><img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" title="Telegram"></a>
