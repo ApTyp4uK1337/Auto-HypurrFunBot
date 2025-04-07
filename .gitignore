@@ -1,4 +1,3 @@
-/__pycache__/
-/sessions/*/
-!sessions/default_config.json
-/config.json
+/src/__pycache__/
+/src/sessions/*/
+!src/sessions/default_config.json
