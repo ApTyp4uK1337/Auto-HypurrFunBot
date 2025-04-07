@@ -2,6 +2,8 @@
    <a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README_ru.md" title="Версия на русском">:ru: Версия на русском</a>
 </div>
 
+<!-- <img src=""> -->
+
 # 🐰 Auto HypurrFunBot
 
 Auto HypurrFunBot is an automated Telegram bot designed for channel monitoring and interaction with **[HypurrFunBot](https://t.me/HypurrFunBot)**.
