@@ -1,0 +1,7 @@
+{
+  "API_ID": 123456789,
+  "API_HASH": "YOUR-API-HASH",
+  "BOT_USERNAME": "HypurrFunBot",
+  "MESSAGE_AWAIT": 0.5,
+  "REFRESH_AWAIT": 2
+}
