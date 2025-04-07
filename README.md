@@ -2,7 +2,9 @@
    <a href="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/README_ru.md" title="Версия на русском">:ru: Версия на русском</a>
 </div>
 
-<!-- <img src=""> -->
+<div align="center">
+   <img src="https://github.com/ApTyp4uK1337/Auto-HypurrFunBot/blob/master/assets/hypurrfunbot.png?raw=true" height="150" width="150">
+</div>
 
 # 🐰 Auto HypurrFunBot
 
